@@ -776,6 +776,38 @@ with st.expander("🏗️ Model Architecture & Out-of-Time Generalization (EE-VI
     - **Local Batch Latency:** **20.10 ms** across all 60 wards via serialized `dengue_model.joblib`.
     """)
 
+# -------------------------------------------------------------
+# EXPANDABLE ADVANCED EDA & CORRELATION MATRICES
+# -------------------------------------------------------------
+with st.expander("📊 Advanced Exploratory Data Analysis & Correlation Matrices", expanded=False):
+    st.markdown("Detailed empirical discoveries across 31,320 ward-weeks and 60 administrative wards.")
+    t_eda1, t_eda2, t_eda3, t_eda4 = st.tabs([
+        "🔥 Correlation Matrix", 
+        "📈 Distribution & Overdispersion", 
+        "🏙️ Multi-City Dynamics", 
+        "🌡️ Bioclimatic Danger Envelopes"
+    ])
+    
+    with t_eda1:
+        st.markdown("**Dual Correlation Coefficient Matrix (Pearson $r$ & Spearman $\\rho$):**")
+        st.caption("Demonstrating empirical peak correlation at Rainfall Lag-3 ($r=0.75, \\rho=0.79$) and drainage synergy ($r=0.76$).")
+        st.image(os.path.join(os.path.dirname(__file__), "reports_and_visualizations", "eda_correlation_matrix.png"), use_container_width=True)
+        
+    with t_eda2:
+        st.markdown("**Statistical Distribution Diagnostics & Decisive Overdispersion Proof:**")
+        st.caption("Empirical proof of 57.7% zero-case weeks and $\\text{Var}(y)/E[y] = 8.03$, rejecting classical Poisson in favor of Tweedie/NegBinomial.")
+        st.image(os.path.join(os.path.dirname(__file__), "reports_and_visualizations", "eda_target_distribution_and_overdispersion.png"), use_container_width=True)
+        
+    with t_eda3:
+        st.markdown("**Spatiotemporal Outbreak Seasonality & Inter-Annual Trends across 5 Municipalities:**")
+        st.caption("Comparing outbreak trajectories and historical monsoon epidemic curves across Dhaka, Chattogram, Gazipur, and Narayanganj.")
+        st.image(os.path.join(os.path.dirname(__file__), "reports_and_visualizations", "eda_city_spatiotemporal_patterns.png"), use_container_width=True)
+        
+    with t_eda4:
+        st.markdown("**Non-Linear Bioclimatic Envelopes & Environmental Synergy:**")
+        st.caption("High-risk transmission zone concentrated within 26–30°C optimal temperature window when 3-week lagged rainfall exceeds 100mm.")
+        st.image(os.path.join(os.path.dirname(__file__), "reports_and_visualizations", "eda_bioclimatic_thresholds.png"), use_container_width=True)
+
 # FOOTER (Matching Image 3)
 st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)
 st.markdown(f"""
