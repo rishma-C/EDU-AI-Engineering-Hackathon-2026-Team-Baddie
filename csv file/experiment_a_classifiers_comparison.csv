@@ -1,6 +1,0 @@
-Classifier,OOF_Accuracy,OOF_Macro_F1
-Logistic Regression (Multinomial),0.8261,0.7288
-SVC (RBF Kernel),0.8257,0.7263
-Random Forest Classifier,0.8214,0.7051
-KNN Classifier,0.8096,0.6983
-Gaussian Naive Bayes,0.7684,0.6666
