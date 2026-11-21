@@ -66,8 +66,8 @@ flowchart TD
         Cache --> Drivers
     end
 
-    Lags & Roll & Vuln & Bioclim --> VALIDATION
-    VALIDATION --> ENGINE
+    Lags & Roll & Vuln & Bioclim --> SplitA & SplitB & SplitC
+    SplitA & SplitB & SplitC --> Simplex
 ```
 
 ---

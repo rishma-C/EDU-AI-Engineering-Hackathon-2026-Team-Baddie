@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EE-VIB Dengue Outbreak Prediction - System Architecture Diagram</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0e131b;
+            color: #f8fafc;
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header {
+            text-align: center;
+            max-width: 900px;
+            margin-bottom: 2rem;
+        }
+        h1 {
+            color: #10b981;
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+        p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin: 0.25rem 0;
+        }
+        .diagram-container {
+            background-color: #131924;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 2.5rem;
+            max-width: 1200px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+        }
+        .mermaid {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .footer {
+            margin-top: 2rem;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+    </style>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                darkMode: true,
+                background: '#131924',
+                primaryColor: '#1e293b',
+                primaryTextColor: '#f8fafc',
+                primaryBorderColor: '#10b981',
+                lineColor: '#34d399',
+                secondaryColor: '#182232',
+                tertiaryColor: '#0f172a'
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="header">
+        <h1>🦟 EE-VIB System Architecture & Pipeline Flow</h1>
+        <p><strong>Project:</strong> AI for Urban Dengue Outbreak Early Warning in Bangladesh (EDU AI Engineering Hackathon 2026)</p>
+        <p>End-to-End Data Ingestion, Vector Breeding Clock Engineering, Spatial CV, and Production Stacking Ensemble</p>
+    </div>
+
+    <div class="diagram-container">
+        <div class="mermaid">
+flowchart TD
+    subgraph INGESTION["1. Weather & Demographics Ingestion"]
+        RawCSV["Raw Panel Data<br/>31,320 Ward-Weeks (2016–2025)"]
+        StreamlitUI["Interactive Weather Sliders<br/>Current Rain, Temp, Humidity"]
+        RawCSV --> Pipe
+        StreamlitUI --> Pipe
+    end
+
+    subgraph PIPELINE["2. Vector Breeding Clock & Feature Pipeline"]
+        Pipe["Feature Engineering Engine<br/>spatial_cv/data.py"]
+        Lags["Multi-Week Weather Lags<br/>Lags 1–4 (Aedes EIP Timeline)"]
+        Roll["Rolling Stagnation Retention<br/>2w, 3w, 4w Rolling Means, Sum, Std"]
+        Vuln["Hyper-Local Ward Interactions<br/>Rainfall × Drainage Vulnerability<br/>Rainfall ÷ Sanitation Score"]
+        Bioclim["Bioclimatic & Fourier Harmonics<br/>DTR, Temp Optimality (28°C), VPD, Sin/Cos"]
+        Pipe --> Lags
+        Pipe --> Roll
+        Pipe --> Vuln
+        Pipe --> Bioclim
+    end
+
+    subgraph VALIDATION["3. Leakage-Free Spatial & Temporal Validation"]
+        SplitA["Nested Spatial CV (5-Fold Outer, 4-Fold Inner)<br/>Zero Ward Overlap Across Folds"]
+        SplitB["Leave-One-City-Out Spatial LOGO<br/>Zero City Overlap (Regional Transferability)"]
+        SplitC["Chronological Forward Test (2024–2025)<br/>6,300 Ward-Weeks Out-of-Time"]
+    end
+
+    subgraph ENGINE["4. EE-VIB Production Ensemble Engine"]
+        LGBM["Tuned LightGBM<br/>Tweedie Loss (p=1.5), 350 Trees<br/>Weight: 0.40"]
+        CatB_MAE["Tuned CatBoost (MAE Loss)<br/>Median Calibration, Depth 7<br/>Weight: 0.45"]
+        CatB_Twd["Tuned CatBoost (Tweedie Loss)<br/>Peak Surge Anchor, p=1.5<br/>Weight: 0.15"]
+        Simplex["Convex Simplex Optimization<br/>SLSQP Multi-Metric Allocation"]
+        LGBM --> Simplex
+        CatB_MAE --> Simplex
+        CatB_Twd --> Simplex
+    end
+
+    subgraph SERVING["5. High-Throughput Sub-Second Inference"]
+        JoblibModel["Serialized Production Model<br/>model/dengue_model.joblib (5.3 MB)"]
+        Simplex --> JoblibModel
+        Cache["Streamlit Resource Cache<br/>@st.cache_resource (20.1 ms Latency)"]
+        JoblibModel --> Cache
+    end
+
+    subgraph OUTPUTS["6. Public Health Decision Support Outputs"]
+        Cases["Continuous Hospitalization Forecast<br/>95% Predictive Interval"]
+        Tiers["Operational Risk Tiers<br/>Low (Green), Med (Yellow), High (Orange), Critical (Red)"]
+        Clock["Vector Breeding Clock Visualization<br/>Multi-Week Lag Timeline"]
+        Drivers["Environmental & Demographic Drivers<br/>Feature Attribution Decomposition"]
+        Cache --> Cases
+        Cache --> Tiers
+        Cache --> Clock
+        Cache --> Drivers
+    end
+
+    Lags & Roll & Vuln & Bioclim --> SplitA & SplitB & SplitC
+    SplitA & SplitB & SplitC --> Simplex
+        </div>
+    </div>
+
+    <div class="footer">
+        Architecture diagram generated from ARCHITECTURE.md • Criterion 5 (Architecture Design) & Criterion 6 (Compute & Cost Efficiency)
+    </div>
+</body>
+</html>
