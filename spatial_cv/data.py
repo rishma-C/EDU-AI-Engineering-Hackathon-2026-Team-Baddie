@@ -13,6 +13,19 @@ def load_and_engineer_features(csv_path='hackathon_preli_dataset - bangladesh_de
     Loads raw dengue dataset and constructs research-justified features
     strictly grouped by ward_id to prevent any temporal or spatial leakage.
     """
+    if not os.path.exists(csv_path):
+        candidates = [
+            os.path.join('data', os.path.basename(csv_path)),
+            os.path.join('..', 'data', os.path.basename(csv_path)),
+            os.path.join(os.path.dirname(__file__), '..', 'data', os.path.basename(csv_path)),
+            os.path.join(os.path.dirname(__file__), '..', '..', 'data', os.path.basename(csv_path)),
+            os.path.join(os.path.dirname(__file__), os.path.basename(csv_path)),
+        ]
+        for c in candidates:
+            if os.path.exists(c):
+                csv_path = c
+                break
+
     df = pd.read_csv(csv_path)
     df['date'] = pd.to_datetime(df['date'])
     df = df.sort_values(['ward_id', 'date']).reset_index(drop=True)

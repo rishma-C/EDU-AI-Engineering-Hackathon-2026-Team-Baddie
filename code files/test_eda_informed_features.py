@@ -5,7 +5,16 @@ out-of-time test set (2024-2025) and nested spatial CV metrics.
 """
 
 import os
+import sys
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
+
+# Ensure parent directory is in sys.path
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+current_dir = os.path.abspath(os.path.dirname(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
 import numpy as np
 import pandas as pd
 import lightgbm as lgb
@@ -94,7 +103,7 @@ print(f"  R2:   {r2_base:.4f}")
 
 # EDA-Augmented Feature Evaluation
 print("\n--- EDA-AUGMENTED FEATURE EVALUATION (38 + 4 = 42 Features) ---")
-extended_cols = feature_cols + new_candidate_features
+extended_cols = list(dict.fromkeys(feature_cols + new_candidate_features))
 X_train_ext = df_exp.loc[train_mask, extended_cols]
 X_test_ext = df_exp.loc[test_mask, extended_cols]
 

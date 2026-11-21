@@ -103,7 +103,7 @@ Continuous forecasts map into standardized epidemiological risk levels for munic
 
 ---
 
-## 🛠️ Repository Structure
+## 🛠️ Organized Repository Architecture
 
 ```
 .
@@ -111,21 +111,50 @@ Continuous forecasts map into standardized epidemiological risk levels for munic
 ├── README.md                        # Documentation, quickstart & AI disclosure
 ├── requirements.txt                 # Validated dependencies for <=3 min launch
 ├── app.py                           # Interactive Streamlit public health dashboard
-├── train_pipeline.py                # Standalone training & model serialization script
-├── dengue_model.joblib              # Serialized production ensemble (5.3 MB)
-├── model_metadata.json              # Feature schemas, weights, and test metrics
-├── hackathon_preli_dataset - ...csv # Competition panel dataset (31,320 observations)
-├── spatial_cv/                      # Spatial cross-validation package
-│   ├── __init__.py                  # Package manifest
-│   ├── data.py                      # Leakage-free feature engineering engine
-│   ├── models.py                    # Scikit-learn Pipeline architecture & DengueEnsemblePredictor
-│   ├── optimizers.py                # SLSQP, GA, and PSO simplex weight optimizers
-│   ├── tune_optuna.py               # Bayesian hyperparameter optimization (Optuna TPE)
-│   ├── ensemble_experiments.py      # Nested ensemble learning & stacking benchmarks
-│   ├── run_experiment_a.py          # 5-Fold ward-level spatial cross-validation
-│   └── run_experiment_b.py          # Leave-One-City-Out regional spatial cross-validation
-├── spatial_cv_results/              # Complete benchmark tables and diagnostic charts
-└── reports_and_visualizations/      # High-resolution EDA and evaluation charts
+│
+├── code files/                      # Complete source code and validation pipelines
+│   ├── app.py                       # Full dashboard implementation
+│   ├── train_pipeline.py            # End-to-end model training & serialization script
+│   ├── generate_advanced_eda.py     # Advanced statistical & correlation diagnostics suite
+│   ├── test_eda_informed_features.py# Out-of-time test benchmark for bioclimatic features
+│   ├── test_spatial_cv_eda_features.py # Spatial generalization cross-validation tests
+│   └── spatial_cv/                  # Spatial cross-validation package
+│       ├── __init__.py              # Package manifest
+│       ├── data.py                  # Leakage-free feature engineering engine
+│       ├── models.py                # Scikit-learn Pipeline & DengueEnsemblePredictor
+│       ├── optimizers.py            # SLSQP, GA, and PSO simplex weight optimizers
+│       ├── tune_optuna.py           # Bayesian hyperparameter optimization (Optuna TPE)
+│       ├── ensemble_experiments.py  # Nested ensemble learning & stacking benchmarks
+│       ├── run_experiment_a.py      # 5-Fold ward-level spatial cross-validation
+│       └── run_experiment_b.py      # Leave-One-City-Out regional spatial cross-validation
+│
+├── data/                            # Raw datasets & hackathon documents
+│   ├── hackathon_preli_dataset - bangladesh_dengue_large_dataset.csv # Panel dataset (31,320 rows)
+│   └── Hackathon_preli_nov21.pdf    # Official competition guidelines
+│
+├── model/                           # Serialized models & metadata
+│   ├── dengue_model.joblib          # Production EE-VIB stacking ensemble (LightGBM + CatBoost)
+│   └── model_metadata.json          # 42-feature schema, simplex weights, and test metrics
+│
+├── csv files/                       # Complete benchmark tables, OOF predictions & logs
+│   ├── experiment_a_oof_predictions.csv
+│   ├── experiment_a_fold_metrics.csv
+│   ├── experiment_a_model_comparison.csv
+│   ├── experiment_a_city_metrics.csv
+│   ├── experiment_a_classifiers_comparison.csv
+│   ├── experiment_b_oof_predictions.csv
+│   ├── experiment_b_city_fold_metrics.csv
+│   ├── experiment_b_model_comparison.csv
+│   ├── ensemble_phases_3_4_comparison.csv
+│   ├── bayesian_tuning_results.json
+│   └── learned_weights_folds.json
+│
+└── reports_and_visualizations/      # High-resolution EDA and evaluation diagnostic plots
+    ├── eda_correlation_matrix.png
+    ├── eda_target_distribution_and_overdispersion.png
+    ├── eda_city_spatiotemporal_patterns.png
+    ├── eda_bioclimatic_thresholds.png
+    └── model_forward_test_evaluation.png
 ```
 
 ---

@@ -24,11 +24,26 @@ plt.rcParams['ytick.labelsize'] = 9
 plt.rcParams['legend.fontsize'] = 10
 plt.rcParams['figure.titlesize'] = 14
 
-out_dir = os.path.join(os.path.dirname(__file__), 'reports_and_visualizations')
+# Resolve output directory
+out_dir_candidates = [
+    os.path.join(os.path.dirname(__file__), 'reports_and_visualizations'),
+    os.path.join(os.path.dirname(__file__), '..', 'reports_and_visualizations'),
+    'reports_and_visualizations'
+]
+out_dir = next((d for d in out_dir_candidates if os.path.exists(d)), out_dir_candidates[0])
 os.makedirs(out_dir, exist_ok=True)
 
 # 1. Load Data
-csv_path = os.path.join(os.path.dirname(__file__), 'hackathon_preli_dataset - bangladesh_dengue_large_dataset.csv')
+csv_filename = 'hackathon_preli_dataset - bangladesh_dengue_large_dataset.csv'
+csv_candidates = [
+    os.path.join(os.path.dirname(__file__), csv_filename),
+    os.path.join(os.path.dirname(__file__), 'data', csv_filename),
+    os.path.join(os.path.dirname(__file__), '..', 'data', csv_filename),
+    os.path.join('data', csv_filename),
+    csv_filename
+]
+csv_path = next((p for p in csv_candidates if os.path.exists(p)), csv_filename)
+print(f"Loading EDA data from {csv_path}...")
 df = pd.read_csv(csv_path)
 df['date'] = pd.to_datetime(df['date'])
 df['year'] = df['date'].dt.year

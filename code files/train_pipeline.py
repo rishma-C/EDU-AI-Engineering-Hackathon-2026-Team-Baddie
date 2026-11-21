@@ -86,7 +86,15 @@ def to_risk_tier(cases_array, cutoffs=(0.5, 5.5, 14.5)):
     )
 
 def main():
-    csv_path = 'hackathon_preli_dataset - bangladesh_dengue_large_dataset.csv'
+    csv_filename = 'hackathon_preli_dataset - bangladesh_dengue_large_dataset.csv'
+    csv_candidates = [
+        csv_filename,
+        os.path.join('data', csv_filename),
+        os.path.join('..', 'data', csv_filename),
+        os.path.join(os.path.dirname(__file__), 'data', csv_filename),
+        os.path.join(os.path.dirname(__file__), '..', 'data', csv_filename),
+    ]
+    csv_path = next((p for p in csv_candidates if os.path.exists(p)), csv_filename)
     print(f"Loading raw dataset from {csv_path}...")
     raw_df = pd.read_csv(csv_path)
 
@@ -197,7 +205,16 @@ def main():
 
     # Serialize trained ensemble for Criterion 6 (Fast local inference via joblib)
     print("\nSerializing trained ensemble and metadata...")
-    joblib.dump(ensemble_pipeline, 'dengue_model.joblib')
+    model_dirs = [
+        os.path.join(os.path.dirname(__file__), 'model'),
+        os.path.join(os.path.dirname(__file__), '..', 'model'),
+        'model',
+        '.'
+    ]
+    target_model_dir = next((d for d in model_dirs if os.path.exists(d)), '.')
+    
+    save_model_path = os.path.join(target_model_dir, 'dengue_model.joblib')
+    joblib.dump(ensemble_pipeline, save_model_path)
     
     metadata = {
         'model_type': 'DengueEnsemblePredictor (LightGBM_Tweedie + CatBoost_MAE + CatBoost_Tweedie)',
@@ -218,10 +235,11 @@ def main():
             'Critical': '>= 15 cases'
         }
     }
-    with open('model_metadata.json', 'w') as f:
+    save_meta_path = os.path.join(target_model_dir, 'model_metadata.json')
+    with open(save_meta_path, 'w') as f:
         json.dump(metadata, f, indent=2)
 
-    print("Successfully saved dengue_model.joblib and model_metadata.json.")
+    print(f"Successfully saved {save_model_path} and {save_meta_path}.")
 
 if __name__ == '__main__':
     main()

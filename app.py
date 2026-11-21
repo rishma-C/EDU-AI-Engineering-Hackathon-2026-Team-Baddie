@@ -255,15 +255,27 @@ st.markdown(f"""
 # -------------------------------------------------------------
 # 1. CACHED DATA & MODEL LOADERS (Criterion 6: Fast Local Inference)
 # -------------------------------------------------------------
+def resolve_file(rel_path):
+    """Resolves file path robustly across root and subfolders."""
+    candidates = [
+        os.path.join(os.path.dirname(__file__), rel_path),
+        os.path.join(os.path.dirname(__file__), '..', rel_path),
+        os.path.join(os.path.dirname(__file__), 'model', os.path.basename(rel_path)),
+        os.path.join(os.path.dirname(__file__), '..', 'model', os.path.basename(rel_path)),
+        os.path.join(os.path.dirname(__file__), 'data', os.path.basename(rel_path)),
+        os.path.join(os.path.dirname(__file__), '..', 'data', os.path.basename(rel_path)),
+        rel_path
+    ]
+    for c in candidates:
+        if os.path.exists(c):
+            return os.path.abspath(c)
+    return os.path.abspath(candidates[0])
+
 @st.cache_resource
 def load_production_model():
     """Loads serialized production ensemble with zero recurring API billing."""
-    model_path = os.path.join(os.path.dirname(__file__), 'dengue_model.joblib')
-    if not os.path.exists(model_path):
-        model_path = os.path.join(os.path.dirname(__file__), 'model', 'dengue_model.joblib')
-    metadata_path = os.path.join(os.path.dirname(__file__), 'model_metadata.json')
-    if not os.path.exists(metadata_path):
-        metadata_path = os.path.join(os.path.dirname(__file__), 'model', 'model_metadata.json')
+    model_path = resolve_file('model/dengue_model.joblib')
+    metadata_path = resolve_file('model/model_metadata.json')
     model = joblib.load(model_path)
     with open(metadata_path, 'r') as f:
         metadata = json.load(f)
@@ -272,9 +284,7 @@ def load_production_model():
 @st.cache_data
 def load_dataset_metadata():
     """Loads dataset panel and pre-computes static ward profiles and reference dates."""
-    csv_path = os.path.join(os.path.dirname(__file__), 'hackathon_preli_dataset - bangladesh_dengue_large_dataset.csv')
-    if not os.path.exists(csv_path):
-        csv_path = os.path.join(os.path.dirname(__file__), 'data', 'hackathon_preli_dataset - bangladesh_dengue_large_dataset.csv')
+    csv_path = resolve_file('data/hackathon_preli_dataset - bangladesh_dengue_large_dataset.csv')
     df = pd.read_csv(csv_path)
     df['date'] = pd.to_datetime(df['date'])
     
@@ -868,22 +878,22 @@ with st.expander("📊 Advanced Exploratory Data Analysis & Correlation Matrices
     with t_eda1:
         st.markdown("**Dual Correlation Coefficient Matrix (Pearson $r$ & Spearman $\\rho$):**")
         st.caption("Demonstrating empirical peak correlation at Rainfall Lag-3 ($r=0.75, \\rho=0.79$) and drainage synergy ($r=0.76$).")
-        st.image(os.path.join(os.path.dirname(__file__), "reports_and_visualizations", "eda_correlation_matrix.png"), use_container_width=True)
+        st.image(resolve_file(os.path.join("reports_and_visualizations", "eda_correlation_matrix.png")), use_container_width=True)
         
     with t_eda2:
         st.markdown("**Statistical Distribution Diagnostics & Decisive Overdispersion Proof:**")
         st.caption("Empirical proof of 57.7% zero-case weeks and $\\text{Var}(y)/E[y] = 8.03$, rejecting classical Poisson in favor of Tweedie/NegBinomial.")
-        st.image(os.path.join(os.path.dirname(__file__), "reports_and_visualizations", "eda_target_distribution_and_overdispersion.png"), use_container_width=True)
+        st.image(resolve_file(os.path.join("reports_and_visualizations", "eda_target_distribution_and_overdispersion.png")), use_container_width=True)
         
     with t_eda3:
         st.markdown("**Spatiotemporal Outbreak Seasonality & Inter-Annual Trends across 5 Municipalities:**")
         st.caption("Comparing outbreak trajectories and historical monsoon epidemic curves across Dhaka, Chattogram, Gazipur, and Narayanganj.")
-        st.image(os.path.join(os.path.dirname(__file__), "reports_and_visualizations", "eda_city_spatiotemporal_patterns.png"), use_container_width=True)
+        st.image(resolve_file(os.path.join("reports_and_visualizations", "eda_city_spatiotemporal_patterns.png")), use_container_width=True)
         
     with t_eda4:
         st.markdown("**Non-Linear Bioclimatic Envelopes & Environmental Synergy:**")
         st.caption("High-risk transmission zone concentrated within 26–30°C optimal temperature window when 3-week lagged rainfall exceeds 100mm.")
-        st.image(os.path.join(os.path.dirname(__file__), "reports_and_visualizations", "eda_bioclimatic_thresholds.png"), use_container_width=True)
+        st.image(resolve_file(os.path.join("reports_and_visualizations", "eda_bioclimatic_thresholds.png")), use_container_width=True)
 
 # FOOTER (Matching Image 3)
 st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)

@@ -49,7 +49,7 @@ flowchart TD
     end
 
     subgraph SERVING["5. High-Throughput Sub-Second Inference"]
-        JoblibModel["Serialized Production Model<br/>dengue_model.joblib (5.3 MB)"]
+        JoblibModel["Serialized Production Model<br/>model/dengue_model.joblib (5.3 MB)"]
         Simplex --> JoblibModel
         Cache["Streamlit Resource Cache<br/>@st.cache_resource (20.1 ms Latency)"]
         JoblibModel --> Cache
@@ -121,7 +121,7 @@ To guarantee that the prediction engine transfers to newly monitored urban wards
 - Across 31,080 samples, Kernel SVR scaled with $\mathcal{O}(N^2)$ to $\mathcal{O}(N^3)$ computational complexity, requiring $>60$ seconds per fold, hitting iteration ceilings (`max_iter=3000`), and catastrophically failing under sigmoid kernels ($\text{MAE} = 10.67, R^2 = -32.7$).
 
 ### 4. The Winning Architecture: EE-VIB Production Stacking Ensemble
-The final serialized engine ([dengue_model.joblib](file:///d:/hackathon/dengue_model.joblib)) combines three specialized gradient-boosted decision tree learners:
+The final serialized engine ([model/dengue_model.joblib](file:///d:/hackathon/model/dengue_model.joblib)) combines three specialized gradient-boosted decision tree learners:
 1. **Tuned LightGBM (Tweedie Loss, $p=1.5$):** Optimizes the compound Poisson-Gamma likelihood, handling the 58.03% zero-case weeks while capturing non-linear climatic thresholds (Weight: **40%**).
 2. **Tuned CatBoost (MAE Loss):** Oblivious trees minimizing median absolute deviation, providing resilience against extreme reporting noise (Weight: **45%**).
 3. **Tuned CatBoost (Tweedie Loss, $p=1.5$):** Provides variance stabilization and peak epidemic surge anchoring (Weight: **15%**).
@@ -131,7 +131,7 @@ The final serialized engine ([dengue_model.joblib](file:///d:/hackathon/dengue_m
 ## 5. COMPUTE & API COST EFFICIENCY (CRITERION 6)
 
 ### Sub-Second Local Serialized Inference
-- The production model is compiled into an optimized binary artifact ([dengue_model.joblib](file:///d:/hackathon/dengue_model.joblib), 5.3 MB).
+- The production model is compiled into an optimized binary artifact ([model/dengue_model.joblib](file:///d:/hackathon/model/dengue_model.joblib), 5.3 MB).
 - **Benchmarked Inference Latency:** Generating simultaneous predictions and risk tier classifications for all 60 administrative wards requires exactly **20.10 milliseconds** on commodity CPU hardware.
 - Public health officers can execute real-time weather simulations without waiting for external cloud roundtrips.
 

@@ -5,7 +5,16 @@ under 5-fold spatial cross-validation.
 """
 
 import os
+import sys
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
+
+# Ensure parent and current directory are in sys.path
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+current_dir = os.path.abspath(os.path.dirname(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
 import numpy as np
 import pandas as pd
 import lightgbm as lgb
@@ -32,7 +41,7 @@ new_candidate_features = [
     'sanitation_deficit_rain',
     'vapor_heat_load'
 ]
-extended_cols = feature_cols + new_candidate_features
+extended_cols = list(dict.fromkeys(feature_cols + new_candidate_features))
 
 gkf = GroupKFold(n_splits=5)
 oof_preds_base = np.zeros(len(clean_df))
