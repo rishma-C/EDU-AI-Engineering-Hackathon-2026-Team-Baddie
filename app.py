@@ -16,7 +16,64 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-from spatial_cv.models import DengueEnsemblePredictor
+import sys
+import types
+
+# Ensure workspace and module root are always accessible in sys.path
+app_dir = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
+for p in [app_dir, os.path.join(app_dir, 'spatial_cv'), os.path.join(app_dir, 'code files'), '.', '..']:
+    if os.path.exists(p) and os.path.abspath(p) not in sys.path:
+        sys.path.insert(0, os.path.abspath(p))
+
+try:
+    from spatial_cv.models import DengueEnsemblePredictor
+except (ImportError, ModuleNotFoundError):
+    # Standalone fallback registration so joblib unpickles without requiring external packages
+    if 'spatial_cv' not in sys.modules:
+        sys.modules['spatial_cv'] = types.ModuleType('spatial_cv')
+    if 'spatial_cv.models' not in sys.modules:
+        sys.modules['spatial_cv.models'] = types.ModuleType('spatial_cv.models')
+
+    class DengueEnsemblePredictor:
+        def __init__(self, models_dict, weights_dict, feature_names=None):
+            self.models_dict = models_dict
+            self.weights_dict = weights_dict
+            self.feature_names = feature_names
+
+        def _prepare_input(self, X):
+            if isinstance(X, np.ndarray):
+                if self.feature_names is not None and X.shape[1] == len(self.feature_names):
+                    return pd.DataFrame(X, columns=self.feature_names)
+                return pd.DataFrame(X)
+            elif isinstance(X, pd.DataFrame):
+                if self.feature_names is not None:
+                    missing = [c for c in self.feature_names if c not in X.columns]
+                    if not missing:
+                        return X[self.feature_names]
+                return X
+            return X
+
+        def predict(self, X):
+            X_df = self._prepare_input(X)
+            final_preds = np.zeros(len(X_df))
+            for m_name, model in self.models_dict.items():
+                w = self.weights_dict.get(m_name, 0.0)
+                if w > 0:
+                    p = np.clip(model.predict(X_df), 0, None)
+                    final_preds += w * p
+            return np.clip(final_preds, 0, None)
+
+        def predict_risk_tier(self, X, cutoffs=(0.5, 5.5, 14.5)):
+            preds = self.predict(X)
+            c1, c2, c3 = cutoffs
+            return pd.cut(
+                preds,
+                bins=[-np.inf, c1, c2, c3, np.inf],
+                labels=['Low', 'Medium', 'High', 'Critical']
+            )
+
+    DengueEnsemblePredictor.__module__ = 'spatial_cv.models'
+    sys.modules['spatial_cv.models'].DengueEnsemblePredictor = DengueEnsemblePredictor
 
 # Page Configuration
 st.set_page_config(
@@ -61,6 +118,11 @@ if is_dark:
     table_header_bg = "#131b28"
     table_row_alt = "#111824"
     plotly_template = "plotly_dark"
+    expander_header_bg = "#182232"
+    expander_header_open = "#1e293b"
+    expander_header_hover = "#23334d"
+    expander_border = "rgba(255, 255, 255, 0.12)"
+    expander_text = "#f8fafc"
 else:
     bg_color = "#f8fafc"
     sidebar_bg = "#f1f5f9"
@@ -87,6 +149,11 @@ else:
     table_header_bg = "#f1f5f9"
     table_row_alt = "#f8fafc"
     plotly_template = "plotly_white"
+    expander_header_bg = "#ffffff"
+    expander_header_open = "#f1f5f9"
+    expander_header_hover = "#e2e8f0"
+    expander_border = "#cbd5e1"
+    expander_text = "#0f172a"
 
 # Inject Global Adaptive CSS
 st.markdown(f"""
@@ -231,11 +298,131 @@ st.markdown(f"""
         padding: 1.1rem 1.25rem;
         box-shadow: 0 2px 4px rgba(0,0,0,0.06);
     }}
+    /* Expander Container (Details) */
+    div[data-testid="stExpander"],
+    .stExpander,
+    details[data-testid="stExpander"],
+    div[data-testid="stExpander"] details {{
+        background-color: {card_bg} !important;
+        border: 1px solid {expander_border} !important;
+        border-radius: 10px !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
+        overflow: hidden !important;
+        margin-bottom: 1rem !important;
+    }}
+
+    /* Expander Summary / Header (Collapsed & Base) */
+    div[data-testid="stExpander"] summary,
+    .stExpander summary,
+    details[data-testid="stExpander"] > summary,
+    div[data-testid="stExpander"] details > summary,
     .streamlit-expanderHeader {{
+        background-color: {expander_header_bg} !important;
+        color: {expander_text} !important;
+        border: none !important;
+        border-radius: 9px !important;
+        padding: 0.85rem 1.15rem !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease-in-out !important;
+    }}
+
+    /* Expander Summary / Header when EXPANDED (Open state) */
+    div[data-testid="stExpander"] details[open] > summary,
+    details[data-testid="stExpander"][open] > summary,
+    .stExpander details[open] > summary,
+    div[data-testid="stExpander"] summary[aria-expanded="true"],
+    details[data-testid="stExpander"] summary[aria-expanded="true"] {{
+        background-color: {expander_header_open} !important;
+        color: {expander_text} !important;
+        border-bottom: 1px solid {expander_border} !important;
+        border-bottom-left-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+    }}
+
+    /* Expander Summary on Hover & Focus */
+    div[data-testid="stExpander"] summary:hover,
+    details[data-testid="stExpander"] summary:hover,
+    div[data-testid="stExpander"] summary:focus,
+    details[data-testid="stExpander"] summary:focus,
+    div[data-testid="stExpander"] summary:focus-visible,
+    details[data-testid="stExpander"] summary:focus-visible {{
+        background-color: {expander_header_hover} !important;
+        color: {expander_text} !important;
+        outline: none !important;
+    }}
+
+    /* Ensure text & children inside summary inherit high contrast */
+    div[data-testid="stExpander"] summary *,
+    details[data-testid="stExpander"] summary *,
+    .stExpander summary * {{
+        color: {expander_text} !important;
+    }}
+
+    /* Chevron / Expand Arrow Icon */
+    div[data-testid="stExpander"] summary svg,
+    details[data-testid="stExpander"] summary svg,
+    [data-testid="stExpanderToggleIcon"],
+    div[data-testid="stExpander"] summary [data-testid="stExpanderToggleIcon"] {{
+        color: {expander_text} !important;
+        fill: {expander_text} !important;
+        stroke: {expander_text} !important;
+    }}
+
+    /* Expander Content Details */
+    div[data-testid="stExpanderDetails"],
+    details[data-testid="stExpander"] > div[data-testid="stExpanderDetails"],
+    div[data-testid="stExpander"] div[data-testid="stExpanderDetails"] {{
         background-color: {card_bg} !important;
         color: {text_color} !important;
-        border: 1px solid {card_border} !important;
-        border-radius: 8px !important;
+        border-top: none !important;
+        padding: 1.1rem 1.25rem !important;
+    }}
+
+    div[data-testid="stExpanderDetails"] p,
+    div[data-testid="stExpanderDetails"] span,
+    div[data-testid="stExpanderDetails"] label,
+    div[data-testid="stExpanderDetails"] li {{
+        color: {text_color} !important;
+    }}
+
+    /* Tabs Styling inside Expander and Main View */
+    div[data-testid="stTabs"] div[data-baseweb="tab-list"] {{
+        background-color: transparent !important;
+        border-bottom: 1px solid {card_border} !important;
+        gap: 0.5rem !important;
+    }}
+    div[data-testid="stTabs"] button[data-baseweb="tab"] {{
+        background-color: transparent !important;
+        color: {text_muted} !important;
+        border-radius: 6px 6px 0 0 !important;
+        border: none !important;
+        font-weight: 600 !important;
+        padding: 0.6rem 1rem !important;
+        transition: all 0.15s ease !important;
+    }}
+    div[data-testid="stTabs"] button[data-baseweb="tab"]:hover {{
+        background-color: {"#24334a" if is_dark else "#e2e8f0"} !important;
+        color: {text_color} !important;
+    }}
+    div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] {{
+        background-color: {"#1e293b" if is_dark else "#ffffff"} !important;
+        color: {"#34d399" if is_dark else "#059669"} !important;
+        border-bottom: 2px solid {"#10b981" if is_dark else "#059669"} !important;
+    }}
+    div[data-testid="stTabs"] button[data-baseweb="tab"] p {{
+        color: inherit !important;
+        font-weight: inherit !important;
+    }}
+
+    /* Markdown Code Blocks / Inlines inside Expanders */
+    code {{
+        background-color: {"#111827" if is_dark else "#f1f5f9"} !important;
+        color: {"#38bdf8" if is_dark else "#0284c7"} !important;
+        border: 1px solid {"rgba(255, 255, 255, 0.12)" if is_dark else "#cbd5e1"} !important;
+        border-radius: 4px !important;
+        padding: 0.15rem 0.35rem !important;
+        font-size: 0.88em !important;
     }}
     .badge-pill {{
         display: inline-block;

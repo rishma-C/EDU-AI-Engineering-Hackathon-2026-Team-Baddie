@@ -58,9 +58,9 @@
     "tier_accuracy": 0.8341
   },
   "tier_cutoffs": {
-    "Low": "0 cases",
-    "Medium": "1-5 cases",
-    "High": "6-14 cases",
-    "Critical": ">= 15 cases"
+    "Low": "0 cases (< 0.5)",
+    "Medium": "1-5 cases (0.5 to 5.5)",
+    "High": "6-14 cases (5.5 to 14.5)",
+    "Critical": ">= 15 cases (>= 14.5)"
   }
 }

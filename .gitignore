@@ -49,3 +49,10 @@ $RECYCLE.BIN/
 
 # Streamlit config
 .streamlit/secrets.toml
+
+# Jupyter & Temporary Files
+.ipynb_checkpoints/
+*.tmp
+*.temp
+*.log
+.DS_Store
