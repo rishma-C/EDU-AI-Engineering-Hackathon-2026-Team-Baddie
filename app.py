@@ -43,6 +43,9 @@ if is_dark:
     input_bg = "#182232"
     input_border = "rgba(255, 255, 255, 0.15)"
     input_text = "#f8fafc"
+    select_btn_bg = "#0d1610"
+    select_arrow_color = "#ffffff"
+    select_btn_color = "#ffffff"
     card_bg = "#182232"
     card_border = "rgba(255, 255, 255, 0.08)"
     text_color = "#f8fafc"
@@ -66,6 +69,9 @@ else:
     input_bg = "#ffffff"
     input_border = "#cbd5e1"
     input_text = "#0f172a"
+    select_btn_bg = "#e2e8f0"
+    select_arrow_color = "#0f172a"
+    select_btn_color = "#0f172a"
     card_bg = "#ffffff"
     card_border = "#e2e8f0"
     text_color = "#0f172a"
@@ -109,26 +115,71 @@ st.markdown(f"""
         color: {sidebar_label} !important;
         font-weight: 400 !important;
     }}
-    /* Inputs in sidebar */
-    div[data-baseweb="select"] > div {{
+    /* Selectbox (Streamlit 1.40+ React Aria ComboBox matching Pic 2) */
+    div[data-testid="stSelectbox"] div[role="group"] {{
         background-color: {input_bg} !important;
+        border: 1px solid {input_border} !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        display: flex !important;
+        align-items: center !important;
+    }}
+    div[data-testid="stSelectbox"] input {{
+        background-color: transparent !important;
+        border: none !important;
         color: {input_text} !important;
+        font-weight: 600 !important;
+        box-shadow: none !important;
+    }}
+    div[data-testid="stSelectbox"] button[aria-label="Open"],
+    div[data-testid="stSelectbox"] button {{
+        background-color: {select_btn_bg} !important;
+        border: none !important;
+        border-radius: 6px !important;
+        margin: 3px 4px 3px 0 !important;
+        padding: 4px 6px !important;
+        color: {select_btn_color} !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }}
+    div[data-testid="stSelectbox"] svg {{
+        fill: {select_arrow_color} !important;
+        stroke: {select_arrow_color} !important;
+        color: {select_arrow_color} !important;
+        width: 16px !important;
+        height: 16px !important;
+    }}
+    
+    /* Date Input & Calendar Popover (matching Pic 1) */
+    div[data-testid="stDateInput"] div[role="group"],
+    div[data-testid="stDateInput"] > div > div {{
+        background-color: {input_bg} !important;
         border: 1px solid {input_border} !important;
         border-radius: 8px !important;
     }}
-    div[data-baseweb="select"] span {{
+    div[data-testid="stDateInput"] input {{
+        background-color: transparent !important;
+        border: none !important;
         color: {input_text} !important;
         font-weight: 600 !important;
     }}
-    div[data-baseweb="select"] svg {{
-        fill: {sidebar_text} !important;
+    div[data-testid="stDateInput"] svg {{
+        fill: {select_arrow_color} !important;
+        color: {select_arrow_color} !important;
     }}
-    div[data-baseweb="popover"] ul {{
+    div[data-baseweb="calendar"],
+    div[data-testid="stDateInputPopover"] {{
         background-color: {card_bg} !important;
+        color: {text_color} !important;
+        border: 1px solid {card_border} !important;
+        border-radius: 10px !important;
     }}
-    div[data-baseweb="popover"] li {{
+    div[data-baseweb="calendar"] * {{
         color: {text_color} !important;
     }}
+    
     input[type="text"], input[disabled] {{
         background-color: {input_bg} !important;
         color: {input_text} !important;
@@ -208,7 +259,11 @@ st.markdown(f"""
 def load_production_model():
     """Loads serialized production ensemble with zero recurring API billing."""
     model_path = os.path.join(os.path.dirname(__file__), 'dengue_model.joblib')
+    if not os.path.exists(model_path):
+        model_path = os.path.join(os.path.dirname(__file__), 'model', 'dengue_model.joblib')
     metadata_path = os.path.join(os.path.dirname(__file__), 'model_metadata.json')
+    if not os.path.exists(metadata_path):
+        metadata_path = os.path.join(os.path.dirname(__file__), 'model', 'model_metadata.json')
     model = joblib.load(model_path)
     with open(metadata_path, 'r') as f:
         metadata = json.load(f)
@@ -218,6 +273,8 @@ def load_production_model():
 def load_dataset_metadata():
     """Loads dataset panel and pre-computes static ward profiles and reference dates."""
     csv_path = os.path.join(os.path.dirname(__file__), 'hackathon_preli_dataset - bangladesh_dengue_large_dataset.csv')
+    if not os.path.exists(csv_path):
+        csv_path = os.path.join(os.path.dirname(__file__), 'data', 'hackathon_preli_dataset - bangladesh_dengue_large_dataset.csv')
     df = pd.read_csv(csv_path)
     df['date'] = pd.to_datetime(df['date'])
     
@@ -267,16 +324,26 @@ with col_theme2:
 
 st.sidebar.markdown("<div style='margin-top: 0.5rem;'></div>", unsafe_allow_html=True)
 
-# City & Ward Selection
+# City & Ward Selection (matching Pic 1 & 2)
 cities = sorted(ward_props['city'].unique().tolist())
 default_city = 'Chattogram' if 'Chattogram' in cities else cities[0]
-selected_city = st.sidebar.selectbox("City:", cities, index=cities.index(default_city))
+selected_city = st.sidebar.selectbox("City", cities, index=cities.index(default_city))
 
 city_wards = sorted(ward_props[ward_props['city'] == selected_city]['ward_id'].unique().tolist())
-selected_ward = st.sidebar.selectbox("Ward:", city_wards, index=0)
+selected_ward = st.sidebar.selectbox("Ward", city_wards, index=0)
 
-# Reference week display
-st.sidebar.text_input("Reference week (Data Boundary):", value=ref_date_str, disabled=True)
+# Reference week display (Interactive Date Picker matching Pic 1)
+ref_default_dt = pd.to_datetime('2025-12-12').date()
+selected_ref_date = st.sidebar.date_input(
+    "Reference week",
+    value=ref_default_dt,
+    min_value=raw_df['date'].min().date(),
+    max_value=raw_df['date'].max().date(),
+    format="YYYY/MM/DD",
+    help="The source dataset ends on 29 Dec 2025. This forecast extends beyond observed cases and weather; it uses the latest ward record plus the editable scenario inputs."
+)
+reference_date = pd.to_datetime(selected_ref_date)
+ref_date_str = reference_date.strftime('%Y/%m/%d')
 
 # Forecast Horizon Selector (Image 1: +2 weeks, +3 weeks, +4 weeks)
 st.sidebar.markdown("<span style='font-size: 0.82rem; font-weight: 700;'>Forecast horizon</span>", unsafe_allow_html=True)
