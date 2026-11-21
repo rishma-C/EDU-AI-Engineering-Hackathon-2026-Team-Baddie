@@ -25,40 +25,23 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for Professional Healthcare Public Dashboard
+# Custom High-Contrast Theme-Adaptive CSS
 st.markdown("""
 <style>
-    .main-header {
-        font-size: 2.2rem;
-        font-weight: 800;
-        color: #1a365d;
-        margin-bottom: 0.2rem;
-    }
-    .sub-header {
-        font-size: 1.05rem;
-        color: #4a5568;
-        margin-bottom: 1.5rem;
-    }
-    .kpi-card {
-        background: #ffffff;
-        border-radius: 10px;
-        padding: 1.2rem;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-        border-left: 5px solid #3182ce;
-        margin-bottom: 1rem;
-    }
     .tier-badge {
         display: inline-block;
-        padding: 0.35rem 0.85rem;
-        border-radius: 9999px;
-        font-weight: 700;
-        font-size: 1.1rem;
+        padding: 0.4rem 1.0rem;
+        border-radius: 8px;
+        font-weight: 800;
+        font-size: 1.15rem;
         text-align: center;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.25);
     }
-    .tier-low { background-color: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; }
-    .tier-medium { background-color: #fefcbf; color: #744210; border: 1px solid #faf089; }
-    .tier-high { background-color: #feebc8; color: #7b341e; border: 1px solid #fbd38d; }
-    .tier-critical { background-color: #fed7d7; color: #742a2a; border: 1px solid #feb2b2; }
+    .tier-low { background-color: #2e7d32; color: #ffffff !important; }
+    .tier-medium { background-color: #f57f17; color: #ffffff !important; }
+    .tier-high { background-color: #e65100; color: #ffffff !important; }
+    .tier-critical { background-color: #b71c1c; color: #ffffff !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -101,9 +84,9 @@ model, metadata = load_production_model()
 raw_df, ward_props, latest_df = load_dataset_metadata()
 feature_cols = metadata['feature_cols']
 
-# Top Header
-st.markdown('<div class="main-header">🦟 AI for Urban Dengue Outbreak | Public Health Early Warning System</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Eco-Epidemiological Vector-Informed Booster (EE-VIB) • 2–4 Week Proactive Outbreak Forecasting across 60 Administrative Wards in Bangladesh</div>', unsafe_allow_html=True)
+# Top Header (Theme-adaptive native Streamlit)
+st.title("🦟 AI for Urban Dengue Outbreak | Public Health Early Warning System")
+st.markdown("##### Eco-Epidemiological Vector-Informed Booster (EE-VIB) • 2–4 Week Proactive Outbreak Forecasting across 60 Administrative Wards in Bangladesh")
 
 # -------------------------------------------------------------
 # SIDEBAR: WARD SELECTION & WEATHER SCENARIO SIMULATOR
@@ -122,15 +105,14 @@ pop_density = int(ward_info['population_density_sqkm'])
 water_logging = float(ward_info['water_logging_risk_index'])
 sanitation = float(ward_info['sanitation_score'])
 
-# Ward Vulnerability Snapshot in Sidebar
-st.sidebar.markdown(f"""
-<div style="background:#edf2f7; padding:0.8rem; border-radius:8px; margin-bottom:1rem; font-size:0.88rem;">
-    <b>Ward Baseline Vulnerability:</b><br/>
-    • <b>Population Density:</b> {pop_density:,} / km²<br/>
-    • <b>Waterlogging Risk Index:</b> {water_logging:.2f} / 1.00<br/>
-    • <b>Sanitation Efficiency Score:</b> {sanitation:.2f} / 1.00
-</div>
-""", unsafe_allow_html=True)
+# Ward Vulnerability Snapshot in Sidebar (100% Theme-Adaptive Container)
+with st.sidebar.container(border=True):
+    st.markdown("🛡️ **Ward Baseline Vulnerability**")
+    st.markdown(f"""
+    • **Population Density:** `{pop_density:,}` / km²  
+    • **Waterlogging Risk Index:** `{water_logging:.2f}` / 1.00  
+    • **Sanitation Score:** `{sanitation:.2f}` / 1.00  
+    """)
 
 st.sidebar.subheader("🌦️ Weather & Lag Simulator")
 
@@ -289,25 +271,21 @@ if predicted_cases < 0.5:
     risk_tier = "Low"
     tier_class = "tier-low"
     tier_desc = "Low transmission activity. Normal entomological monitoring."
-    tier_color = "#38a169"
     action_text = "Standard monitoring: Regular drain inspection and routine community awareness."
 elif predicted_cases < 5.5:
     risk_tier = "Medium"
     tier_class = "tier-medium"
     tier_desc = "Moderate vector proliferation risk. Increased vigilance recommended."
-    tier_color = "#d69e2e"
     action_text = "Heightened surveillance: Targeted drain clearance in waterlogged pockets; house-to-house container inspection."
 elif predicted_cases < 14.5:
     risk_tier = "High"
     tier_class = "tier-high"
     tier_desc = "Outbreak trajectory active. High transmission surge expected in 1–2 weeks."
-    tier_color = "#dd6b20"
     action_text = "Targeted vector intervention: Mobilize Bti biological larvicide teams; clear major street drainage bottlenecks; alert local upazila health complexes."
 else:
     risk_tier = "Critical"
     tier_class = "tier-critical"
     tier_desc = "Severe epidemic surge imminent! Emergency response protocol activated."
-    tier_color = "#e53e3e"
     action_text = "Emergency containment surge: Deploy ultra-low-volume (ULV) thermal adulticide fogging; activate hospital surge capacity for NS1/CBC testing kits and IV saline reserves."
 
 # -------------------------------------------------------------
@@ -326,49 +304,31 @@ with tab1:
     col1, col2, col3 = st.columns([1.1, 1, 1.2])
     
     with col1:
-        st.markdown(f"""
-        <div class="kpi-card" style="border-left-color: {tier_color};">
-            <span style="font-size: 0.85rem; color: #718096; text-transform: uppercase; font-weight: 700;">Operational Outbreak Risk Status</span><br/>
-            <div style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
-                <span class="tier-badge {tier_class}">{risk_tier.upper()} RISK</span>
-            </div>
-            <p style="font-size: 0.88rem; color: #4a5568; margin-top: 0.5rem; margin-bottom: 0;">
-                {tier_desc}
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
+        with st.container(border=True):
+            st.caption("OPERATIONAL OUTBREAK RISK STATUS")
+            st.markdown(f"<div style='margin-top:0.3rem; margin-bottom:0.6rem;'><span class='tier-badge {tier_class}'>{risk_tier.upper()} RISK</span></div>", unsafe_allow_html=True)
+            st.write(f"**{tier_desc}**")
         
     with col2:
         rmse_ci = 1.51  # Verified test set RMSE
         lower_ci = max(0.0, round(predicted_cases - rmse_ci, 1))
         upper_ci = round(predicted_cases + rmse_ci, 1)
         
-        st.markdown(f"""
-        <div class="kpi-card" style="border-left-color: #3182ce;">
-            <span style="font-size: 0.85rem; color: #718096; text-transform: uppercase; font-weight: 700;">Forecasted Hospitalizations (2–4 Wk Window)</span>
-            <div style="font-size: 2.2rem; font-weight: 800; color: #1a202c; margin-top: 0.2rem;">
-                {predicted_cases:.1f} <span style="font-size: 1rem; color: #718096; font-weight: 400;">cases/week</span>
-            </div>
-            <span style="font-size: 0.85rem; color: #4a5568;">
-                95% Predictive Interval: <b>{lower_ci} – {upper_ci} cases</b>
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
+        with st.container(border=True):
+            st.caption("FORECASTED HOSPITALIZATIONS (2–4 WK WINDOW)")
+            st.metric(
+                label="Predicted Incident Cases",
+                value=f"{predicted_cases:.1f} cases/wk",
+                delta=f"95% CI: {lower_ci} – {upper_ci}",
+                delta_color="off"
+            )
+            st.caption("Weekly admissions per ward population")
         
     with col3:
-        st.markdown(f"""
-        <div class="kpi-card" style="border-left-color: #805ad5;">
-            <span style="font-size: 0.85rem; color: #718096; text-transform: uppercase; font-weight: 700;">Model Engine Execution Profile</span>
-            <div style="font-size: 1.1rem; font-weight: 700; color: #2d3748; margin-top: 0.4rem;">
-                ⚡ EE-VIB Production Stacking Ensemble
-            </div>
-            <span style="font-size: 0.85rem; color: #4a5568;">
-                • Local Serialized Inference: <b>{t_infer_ms:.2f} ms</b><br/>
-                • Outer Generalization (OOF MAE): <b>0.8527</b><br/>
-                • External API Cost: <b>$0.00 (Zero runtime tokens)</b>
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
+        with st.container(border=True):
+            st.caption("MODEL ENGINE EXECUTION PROFILE")
+            st.markdown("⚡ **EE-VIB Production Stacking Ensemble**")
+            st.markdown(f"• Local Serialized Latency: **{t_infer_ms:.2f} ms**  \n• Outer Generalization (OOF MAE): **0.8527**  \n• Runtime API Cost: **$0.00 (Zero tokens)**")
 
     # Public Health Action Banner
     st.info(f"📋 **Public Health Officer Action Protocol for {selected_ward} ({selected_city}):** {action_text}")
@@ -402,7 +362,9 @@ with tab1:
         fig_lag.update_layout(
             margin=dict(l=20, r=20, t=20, b=20),
             height=340,
-            coloraxis_showscale=False
+            coloraxis_showscale=False,
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)'
         )
         fig_lag.update_traces(texttemplate='%{text:.1f} mm', textposition='outside')
         st.plotly_chart(fig_lag, use_container_width=True)
@@ -441,7 +403,9 @@ with tab1:
         fig_drivers.update_layout(
             margin=dict(l=20, r=20, t=20, b=20),
             height=340,
-            coloraxis_showscale=False
+            coloraxis_showscale=False,
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)'
         )
         st.plotly_chart(fig_drivers, use_container_width=True)
 
@@ -486,7 +450,7 @@ with tab2:
             color='risk_tier',
             hover_name='ward_id',
             hover_data=['city', 'pop_density', 'sanitation_score'],
-            color_discrete_map={'Low': '#38a169', 'Medium': '#d69e2e', 'High': '#dd6b20', 'Critical': '#e53e3e'},
+            color_discrete_map={'Low': '#2e7d32', 'Medium': '#f57f17', 'High': '#e65100', 'Critical': '#b71c1c'},
             labels={
                 'water_logging': 'Waterlogging Risk Index (Drainage Vulnerability)',
                 'predicted_cases': 'Predicted Cases / Week',
@@ -494,19 +458,17 @@ with tab2:
             },
             title="Outbreak Risk vs Drainage Vulnerability across All 60 Wards"
         )
-        fig_matrix.update_layout(height=420)
+        fig_matrix.update_layout(
+            height=420,
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)'
+        )
         st.plotly_chart(fig_matrix, use_container_width=True)
         
     with col_mat2:
         st.write("🔥 **Top Outbreak Hotspots Requiring Priority Containment:**")
         st.dataframe(
-            city_batch_df[['city', 'ward_id', 'predicted_cases', 'risk_tier', 'water_logging']]
-            .head(10)
-            .style.applymap(
-                lambda v: 'background-color: #fed7d7; color: #742a2a; font-weight: bold;' if v == 'Critical'
-                else ('background-color: #feebc8; color: #7b341e;' if v == 'High' else ''),
-                subset=['risk_tier']
-            ),
+            city_batch_df[['city', 'ward_id', 'predicted_cases', 'risk_tier', 'water_logging']].head(10),
             use_container_width=True,
             height=380
         )
@@ -549,9 +511,4 @@ with tab3:
 
 # Footer
 st.markdown("---")
-st.markdown("""
-<div style="text-align: center; color: #a0aec0; font-size: 0.85rem;">
-    EDU AI Engineering Hackathon 2026 — Preliminary Round • AI for Urban Dengue Outbreak in Bangladesh<br/>
-    Built with LightGBM, CatBoost, Scikit-Learn, Streamlit, and Plotly.
-</div>
-""", unsafe_allow_html=True)
+st.caption("EDU AI Engineering Hackathon 2026 — Preliminary Round • AI for Urban Dengue Outbreak in Bangladesh | Built with LightGBM, CatBoost, Scikit-Learn, Streamlit, and Plotly.")
