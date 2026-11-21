@@ -46,7 +46,15 @@ def load_and_engineer_features(csv_path='hackathon_preli_dataset - bangladesh_de
     ea = es * (df['relative_humidity_pct'] / 100.0)
     df['vapor_pressure_deficit'] = es - ea
 
-    # 5. Cyclical temporal harmonics
+    # 5. Advanced EDA-Informed Non-Linear Synergy Features
+    df['thermal_suitability'] = np.exp(-((df['avg_temp_c'] - 28.0) / 3.0)**2)
+    df['bioclimatic_danger_synergy'] = (
+        df['thermal_suitability'] * df['rainfall_lag3'] * df['water_logging_risk_index']
+    )
+    df['sanitation_deficit_rain'] = (1.0 - df['sanitation_score']) * df['rainfall_lag3']
+    df['vapor_heat_load'] = (df['humidity_lag2'] / 100.0) * df['avg_temp_c']
+
+    # 6. Cyclical temporal harmonics
     df['month'] = df['date'].dt.month
     df['month_sin'] = np.sin(2 * np.pi * df['month'] / 12)
     df['month_cos'] = np.cos(2 * np.pi * df['month'] / 12)

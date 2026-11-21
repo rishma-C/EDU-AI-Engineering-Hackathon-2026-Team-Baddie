@@ -390,6 +390,12 @@ def build_features_for_ward(w_pop, w_water, w_sani, r2, r4, t2, t4, hum, target_
     w_sin = np.sin(2 * np.pi * week_val / 52)
     w_cos = np.cos(2 * np.pi * week_val / 52)
     
+    # 5. Advanced EDA-Informed Non-Linear Synergy Features
+    therm_suit = float(np.exp(-((avg_t - 28.0) / 3.0)**2))
+    bio_synergy = therm_suit * r_l3 * w_water
+    sani_def_rain = (1.0 - w_sani) * r_l3
+    vap_heat = (hum / 100.0) * avg_t
+
     row = {
         'population_density_sqkm': w_pop,
         'water_logging_risk_index': w_water,
@@ -425,6 +431,10 @@ def build_features_for_ward(w_pop, w_water, w_sani, r2, r4, t2, t4, hum, target_
         'diurnal_temp_range': dtr_val,
         'temp_opt_distance': temp_opt_dist,
         'vapor_pressure_deficit': vpd,
+        'thermal_suitability': therm_suit,
+        'bioclimatic_danger_synergy': bio_synergy,
+        'sanitation_deficit_rain': sani_def_rain,
+        'vapor_heat_load': vap_heat,
         'month_sin': m_sin,
         'month_cos': m_cos,
         'week_sin': w_sin,

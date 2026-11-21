@@ -40,18 +40,22 @@
     "diurnal_temp_range",
     "temp_opt_distance",
     "vapor_pressure_deficit",
+    "thermal_suitability",
+    "bioclimatic_danger_synergy",
+    "sanitation_deficit_rain",
+    "vapor_heat_load",
     "month_sin",
     "month_cos",
     "week_sin",
     "week_cos"
   ],
-  "num_features": 38,
+  "num_features": 42,
   "metrics_test_2024_2025": {
-    "mae": 0.7738,
-    "rmse": 1.5127,
-    "r2": 0.8465,
-    "tier_macro_f1": 0.6789,
-    "tier_accuracy": 0.831
+    "mae": 0.7739,
+    "rmse": 1.5076,
+    "r2": 0.8475,
+    "tier_macro_f1": 0.69,
+    "tier_accuracy": 0.8341
   },
   "tier_cutoffs": {
     "Low": "0 cases",
